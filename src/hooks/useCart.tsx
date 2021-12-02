@@ -37,8 +37,8 @@ return []
   //toda vez que precisa verificar api, colocar await
   const addProduct = async (productId: number) => {
     try {
-      const updatedCart = { ...cart } //criou o mesmo carrinho cópia exata
-      
+      const updatedCart = [...cart ] //criou o mesmo carrinho cópia exata
+    
       //verifica se produto existe
       const productExists = updatedCart.find(product =>
         product.id === productId)

@@ -1,9 +1,19 @@
 import { createContext, ReactNode, useContext, useState } from 'react'
 import { toast } from 'react-toastify'
+import { ProductList } from '../pages/Home/styles'
 import { api } from '../services/api'
 
 interface CartProviderProps {
   children: ReactNode
+}
+interface UpdateProductAmount {
+  productId: number
+  amount: number
+}
+
+interface Stock {
+  id: number
+  amount: number //quantidade no carrinhho no momento
 }
 
 interface Product { //tipando o array
@@ -18,6 +28,8 @@ interface Product { //tipando o array
 interface CartContextData {
   cart: Product[] //array, precisa ser tipado ts
   addProduct: (productId: number) => Promise<void>
+  updateProductAmount: ({ productId, amount }: UpdateProductAmount) => void
+  removeProduct: (productId: number) => void
 }
 
 //criar contexto, prove ele ao meio e importa em cada elemento
@@ -78,16 +90,79 @@ return []
     }
   }
 
+const updateProductAmount = async({ productId, amount }:
+  UpdateProductAmount) => {
+  try {
+    if (amount <= 0) {
+      return
+    }
+
+    const stock = await api.get<Stock>(`stock/${productId}`)
+    const stockAmount = stock.data.amount
+
+    if (amount > stockAmount) {
+    toast.error('Quantidade solicitada fora do estoque')
+    return
+    }
+    
+    const updatedCart = [...cart]
+    const productExists = updatedCart.find(
+        product => product.id === productId
+      
+    )
+
+if (productExists) {
+  productExists.amount = amount
+
+  setCart(updatedCart)
+  localStorage.setItem('@ArloClothing:cart', JSON.stringify
+  (updatedCart))
+} else {
+  throw Error()
+}
 
 
+  } catch {
+    toast.error ('Erro na alteração de quantidade de produto')
+  }
+  }
+
+  const removeProduct = (productId: number) => {
+    try {
+      const updatedCart = [...cart]
+      const productIndex = updatedCart.findIndex(
+        product => product.id === productId
+  
+      )
+      if (productId > 0) {
+        updatedCart.splice(productIndex, 1)
+        
+        setCart(updatedCart)
+        localStorage.setItem('@ArloClothing:cart', JSON.stringify
+        (updatedCart))
+  
+      } else {
+        throw Error()
+      }
+    } catch {
+          toast.error('Erro na remoção do produto')
+        }
+  
+  
+    }
+  
 
   return (
-    <CartContext.Provider value={{ cart, addProduct }}>
+    <CartContext.Provider
+      value={{ cart, addProduct, updateProductAmount, removeProduct }}
+    >
       {children}
     </CartContext.Provider>
 
   )
 }
+
+
 
 //usando o contexto
 //em vez de fazer duas importações, faz o hook useCart e importa só uma

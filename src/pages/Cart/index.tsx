@@ -5,8 +5,8 @@ import {
   MdRemoveCircleOutline
 } from 'react-icons/md'
 
-// import { useCart } from '../../hooks/useCart';
-// import { formatPrice } from '../../util/format';
+import { useCart } from '../../hooks/useCart';
+import { formatPrice } from '../../utils/format';
 import { Container, ProductTable, Total } from './styles'
 
 interface Product {
@@ -18,28 +18,32 @@ interface Product {
 }
 
 const Cart = () => {
-  // const { cart, removeProduct, updateProductAmount } = useCart();
+  const { cart, removeProduct, updateProductAmount } = useCart();
 
-  // const cartFormatted = cart.map(product => ({
-  //   // TODO
-  // }))
-  // const total =
-  //   formatPrice(
-  //     cart.reduce((sumTotal, product) => {
-  //       // TODO
-  //     }, 0)
-  //   )
+  const cartFormatted = cart.map(product => ({
+    ...product,
+    priceFormatted: formatPrice(product.price) ,
+    subTotal: formatPrice(product.price * product.amount)
+  }))
+  const total =
+    formatPrice(
+      cart.reduce((sumTotal, product) => {
+       return sumTotal + product.price * product.amount
+      }, 0)
+    )
+  //sumTotal acumulando a soma das coisas, para cada rodada, soma o acumulador e subtotal
+  //product.price* product.amount é o subTotal
 
   function handleProductIncrement(product: Product) {
-    // TODO
+    updateProductAmount({productId: product.id, amount: product.amount + 1})
   }
 
   function handleProductDecrement(product: Product) {
-    // TODO
+    updateProductAmount({productId: product.id, amount: product.amount - 1})
   }
 
   function handleRemoveProduct(productId: number) {
-    // TODO
+    removeProduct(productId)
   }
 
   return (
@@ -55,24 +59,24 @@ const Cart = () => {
           </tr>
         </thead>
         <tbody>
-          <tr data-testid='product'>
+          {cartFormatted.map(product => (
+            <tr data-testid='product'>
             <td>
               <img
-                src='https://images.unsplash.com/photo-1607345366928-199ea26cfe3e?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=687&q=80'
-                alt='Camisa Xadrez'
+                src={product.image} alt={product.title}
               />
             </td>
             <td>
-              <strong>Camisa Xadrez</strong>
-              <span>R$ 159,90</span>
+              <strong>{product.title}</strong>
+              <span>{product.priceFormatted}</span>
             </td>
             <td>
               <div>
                 <button
                   type='button'
                   data-testid='decrement-product'
-                  // disabled={product.amount <= 1}
-                  // onClick={() => handleProductDecrement()}
+                  disabled={product.amount <= 1}
+                  onClick={() => handleProductDecrement(product)}
                 >
                   <MdRemoveCircleOutline size={20} />
                 </button>
@@ -80,30 +84,31 @@ const Cart = () => {
                   type='text'
                   data-testid='product-amount'
                   readOnly
-                  value={2}
+                  value={product.amount}
                 />
                 <button
                   type='button'
                   data-testid='increment-product'
-                  // onClick={() => handleProductIncrement()}
+                  onClick={() => handleProductIncrement(product)}
                 >
                   <MdAddCircleOutline size={20} />
                 </button>
               </div>
             </td>
             <td>
-              <strong>R$ 359,80</strong>
+                <strong>{product.subTotal}</strong>
             </td>
             <td>
               <button
                 type='button'
                 data-testid='remove-product'
-                // onClick={() => handleRemoveProduct(product.id)}
+                onClick={() => handleRemoveProduct(product.id)}
               >
                 <MdDelete size={20} />
               </button>
             </td>
           </tr>
+         ))}
         </tbody>
       </ProductTable>
 
@@ -112,7 +117,7 @@ const Cart = () => {
 
         <Total>
           <span>TOTAL</span>
-          <strong>R$ 359,80</strong>
+          <strong>{total}</strong>
         </Total>
       </footer>
     </Container>
